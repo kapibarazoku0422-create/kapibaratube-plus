@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>稼働状況 - カピバラチューブ 🦛</title>
+  <link rel="stylesheet" href="/statics/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <style>
+    .page-header {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 28px;
+    }
+    .page-header h1 { font-size: 1.4rem; font-weight: 700; }
+    .page-header i { color: var(--kapi-water); }
+
+    /* 全体ステータスバナー */
+    .overall-status {
+      border-radius: 20px; padding: 24px 28px;
+      display: flex; align-items: center; gap: 20px;
+      margin-bottom: 28px;
+      border: 2px solid;
+    }
+    .overall-status.all-ok {
+      background: rgba(107,143,94,0.1);
+      border-color: var(--kapi-grass);
+    }
+    .overall-status.some-down {
+      background: rgba(224,123,57,0.1);
+      border-color: var(--kapi-accent);
+    }
+    .overall-status.all-down {
+      background: rgba(217,79,61,0.1);
+      border-color: var(--kapi-red);
+    }
+    .overall-icon { font-size: 3rem; }
+    .overall-text h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 4px; }
+    .overall-text p  { font-size: 0.85rem; color: var(--text-sub); }
+
+    /* インスタンスリスト */
+    .instance-list { display: flex; flex-direction: column; gap: 10px; }
+    .instance-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 16px 20px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .inst-indicator {
+      width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+    }
+    .inst-indicator.ok       { background: var(--kapi-grass); box-shadow: 0 0 8px rgba(107,143,94,0.5); }
+    .inst-indicator.slow     { background: var(--kapi-accent); box-shadow: 0 0 8px rgba(224,123,57,0.5); }
+    .inst-indicator.down     { background: var(--kapi-red);    box-shadow: 0 0 8px rgba(217,79,61,0.5); }
+    .inst-indicator.checking { background: var(--text-sub); animation: pulse 1s infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    .inst-url  { flex: 1; font-size: 0.85rem; font-family: monospace; color: var(--text-sub); }
+    .inst-time { font-size: 0.78rem; color: var(--text-sub); min-width: 80px; text-align: right; }
+    .inst-badge {
+      font-size: 0.72rem; font-weight: 700; padding: 3px 10px;
+      border-radius: 999px;
+    }
+    .inst-badge.ok   { background: rgba(107,143,94,0.15); color: var(--kapi-grass); }
+    .inst-badge.slow { background: rgba(224,123,57,0.15); color: var(--kapi-accent); }
+    .inst-badge.down { background: rgba(217,79,61,0.15);  color: var(--kapi-red); }
+
+    /* 引用バナー */
+    .credit-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-left: 4px solid var(--kapi-fur);
+      border-radius: 18px; padding: 20px 24px; margin-bottom: 24px;
+    }
+    .credit-card h3 {
+      font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--text-sub); margin-bottom: 10px;
+    }
+    .credit-card p { font-size: 0.88rem; line-height: 1.7; color: var(--text-sub); }
+    .credit-card code {
+      background: var(--bg-2); border-radius: 6px; padding: 1px 6px;
+      font-size: 0.82rem; color: var(--kapi-water);
+    }
+
+    .refresh-btn { display: block; text-align: center; margin-top: 24px; }
+  </style>
+</head>
+<body>
+  <header id="top-bar">
+    <div class="logo" onclick="location.href='/'">
+      <span class="logo-mark">🦛</span>
+      <span class="logo-text">カピバラ<span>チューブ</span></span>
+    </div>
+    <div class="search-wrap">
+      <form action="/search" method="get">
+        <i class="fas fa-search search-icon"></i>
+        <input id="searchbox" type="search" name="q" placeholder="動画を検索..." autocomplete="off">
+      </form>
+    </div>
+    <div class="header-spacer"></div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <i class="fas fa-signal"></i>
+      <h1>API稼働状況</h1>
+    </div>
+
+    <!-- 引用元メモ -->
+    <div class="credit-card">
+      <h3>🦛 仕組みについて</h3>
+      <p>
+        カピバラチューブは <code>sennin-tube-plus</code> の仕組みをベースにしています。
+        動画の取得には <strong>Invidious</strong> の複数インスタンスを使用しており、
+        <code>fetch_invidious()</code> がインスタンスをランダムにシャッフルして冗長化しています。
+        検索・動画ページでは上位4インスタンスに並列リクエストを投げ、
+        最初に応答したものを採用する「投機的実行」方式を採用しています。
+      </p>
+    </div>
+
+    <!-- 全体ステータス -->
+    <div class="overall-status" id="overallStatus">
+      <div class="overall-icon" id="overallIcon">🔄</div>
+      <div class="overall-text">
+        <h2 id="overallTitle">確認中...</h2>
+        <p id="overallDesc">インスタンスの応答を確認しています</p>
+      </div>
+    </div>
+
+    <!-- インスタンス一覧 -->
+    <!-- 引用元: sennin-tube-plus main.py INVIDIOUS_INSTANCES リスト -->
+    <div class="section-title">Invidiousインスタンス</div>
+    <div class="instance-list" id="instanceList">
+      {% for instance in instances %}
+      <div class="instance-card" id="inst-{{ loop.index }}">
+        <div class="inst-indicator checking" id="ind-{{ loop.index }}"></div>
+        <div class="inst-url">{{ instance }}</div>
+        <span class="inst-badge" id="badge-{{ loop.index }}">確認中</span>
+        <div class="inst-time" id="time-{{ loop.index }}">-</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="refresh-btn">
+      <button class="btn btn-secondary" onclick="checkAll()">
+        <i class="fas fa-sync-alt"></i> 再チェック
+      </button>
+    </div>
+  </div>
+
+  <script>
+    $('#searchbox').autocomplete({
+      source: function(req, res) {
+        $.getJSON('/suggest?keyword=' + encodeURIComponent(req.term), d => res(d));
+      },
+      delay: 200, minLength: 1
+    });
+
+    // ── インスタンス死活監視 ──────────────────────────────────────────
+    // 引用元: sennin-tube-plus main.py /status エンドポイント
+    // fetch_invidious() のタイムアウト6秒を基準に判定
+    const instances = [
+      {% for inst in instances %}"{{ inst }}"{% if not loop.last %},{% endif %}{% endfor %}
+    ];
+
+    let results = [];
+
+    async function checkInstance(url, idx) {
+      const ind   = document.getElementById(`ind-${idx+1}`);
+      const badge = document.getElementById(`badge-${idx+1}`);
+      const time  = document.getElementById(`time-${idx+1}`);
+      ind.className = 'inst-indicator checking';
+      badge.textContent = '確認中'; badge.className = 'inst-badge';
+
+      const start = Date.now();
+      try {
+        const resp = await fetch(`${url}/api/v1/stats`, {
+          signal: AbortSignal.timeout(6000)
+        });
+        const ms = Date.now() - start;
+        if (resp.ok) {
+          const status = ms < 1500 ? 'ok' : 'slow';
+          ind.className   = `inst-indicator ${status}`;
+          badge.className = `inst-badge ${status}`;
+          badge.textContent = status === 'ok' ? '良好' : '遅延';
+          time.textContent  = `${ms}ms`;
+          results.push(status);
+        } else throw new Error('HTTP ' + resp.status);
+      } catch {
+        ind.className   = 'inst-indicator down';
+        badge.className = 'inst-badge down';
+        badge.textContent = 'ダウン';
+        time.textContent  = '-';
+        results.push('down');
+      }
+      updateOverall();
+    }
+
+    function updateOverall() {
+      if (results.length < instances.length) return;
+      const ok   = results.filter(r => r === 'ok').length;
+      const slow = results.filter(r => r === 'slow').length;
+      const down = results.filter(r => r === 'down').length;
+      const total = instances.length;
+      const el = document.getElementById('overallStatus');
+      const icon  = document.getElementById('overallIcon');
+      const title = document.getElementById('overallTitle');
+      const desc  = document.getElementById('overallDesc');
+
+      if (down === total) {
+        el.className = 'overall-status all-down';
+        icon.textContent = '🦛💤';
+        title.textContent = 'すべてダウン中';
+        desc.textContent  = '現在サービスが利用できません。しばらく待ってお試しください。';
+      } else if (down > 0 || slow > 0) {
+        el.className = 'overall-status some-down';
+        icon.textContent = '🦛';
+        title.textContent = `一部インスタンスで問題あり (${ok}/${total} 正常)`;
+        desc.textContent  = '使えるインスタンスに自動的に切り替わります。';
+      } else {
+        el.className = 'overall-status all-ok';
+        icon.textContent = '🦛🌿';
+        title.textContent = `すべて正常 (${ok}/${total})`;
+        desc.textContent  = 'カピバラチューブは快適に動いています！';
+      }
+    }
+
+    function checkAll() {
+      results = [];
+      instances.forEach((url, i) => checkInstance(url, i));
+    }
+
+    checkAll();
+  </script>
+</body>
+</html>

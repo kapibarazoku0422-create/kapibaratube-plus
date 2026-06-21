@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>{{ video_title }} - カピバラShorts 🦛</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Caprasimo&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --kapi-water:  #4A9B8E;
+      --kapi-fur:    #8B6F47;
+      --kapi-warm:   #C49A6C;
+      --kapi-accent: #E07B39;
+      --kapi-red:    #D94F3D;
+      --kapi-grass:  #6B8F5E;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body, html {
+      width: 100%; height: 100%; overflow: hidden;
+      background: #0A0806;
+      font-family: 'Noto Sans JP', sans-serif;
+      color: #fff;
+    }
+
+    /* ── コンテナ ── */
+    .shorts-container {
+      position: relative; width: 100%; height: 100dvh;
+      display: flex; justify-content: center; align-items: center;
+    }
+
+    /* ── 動画 ── */
+    .video-wrapper {
+      position: relative; width: 100%; height: 100%;
+      display: flex; justify-content: center; align-items: center;
+      background: #000; cursor: pointer;
+    }
+    video {
+      width: 100%; height: 100%;
+      object-fit: contain;
+    }
+
+    /* 一時停止・ローディングオーバーレイ */
+    .video-state-overlay {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none; z-index: 20;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #pauseIcon {
+      font-size: 4rem; color: rgba(255,255,255,0.75);
+      display: none;
+      filter: drop-shadow(0 2px 12px rgba(0,0,0,0.5));
+    }
+    #loadingSpinner {
+      width: 52px; height: 52px;
+      border: 4px solid rgba(255,255,255,0.15);
+      border-top: 4px solid var(--kapi-water);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* エラー */
+    #errorAlert {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(0.88);
+      background: rgba(217,79,61,0.92);
+      color: #fff; padding: 20px 28px;
+      border-radius: 20px; text-align: center; z-index: 300;
+      opacity: 0; pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      backdrop-filter: blur(12px);
+    }
+    #errorAlert.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    #errorAlert i { font-size: 2.4rem; margin-bottom: 8px; display: block; }
+
+    /* ── 戻るボタン ── */
+    .back-btn {
+      position: absolute; top: 20px; left: 16px; z-index: 30;
+      width: 42px; height: 42px; border-radius: 50%;
+      background: rgba(0,0,0,0.45); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 1rem; text-decoration: none;
+      transition: background 0.2s;
+    }
+    .back-btn:hover { background: rgba(0,0,0,0.7); }
+
+    /* ── ロゴ ── */
+    .shorts-logo {
+      position: absolute; top: 20px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 30; text-decoration: none;
+      display: flex; align-items: center; gap: 6px;
+      font-family: 'Caprasimo', cursive;
+      font-size: 1rem; color: rgba(255,255,255,0.9);
+      text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+      white-space: nowrap;
+    }
+    .shorts-logo span { color: var(--kapi-water); }
+
+    /* ── 右サイドボタン ── */
+    .side-buttons {
+      position: absolute; right: 12px; bottom: 110px;
+      display: flex; flex-direction: column; align-items: center; gap: 22px;
+      z-index: 10;
+    }
+    .action-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      cursor: pointer;
+    }
+    .icon-circle {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: rgba(30,22,16,0.6); backdrop-filter: blur(10px);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      display: flex; justify-content: center; align-items: center;
+      font-size: 1.25rem; transition: all 0.2s;
+    }
+    .action-item:active .icon-circle {
+      transform: scale(0.88);
+      background: rgba(74,155,142,0.5);
+    }
+    .action-item span { font-size: 0.7rem; font-weight: 700; opacity: 0.85; }
+
+    /* ── 下部情報 ── */
+    .bottom-info {
+      position: absolute; bottom: 0; left: 0; width: 100%;
+      padding: 24px 14px 52px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.82));
+      z-index: 5; pointer-events: none;
+    }
+    .info-content { pointer-events: auto; }
+    .author-row {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+    .author-name {
+      font-weight: 700; font-size: 0.95rem;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    }
+    .sub-btn {
+      background: #fff; color: #000;
+      padding: 5px 14px; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 700; border: none; cursor: pointer;
+      font-family: 'Noto Sans JP', sans-serif;
+      transition: opacity 0.2s;
+    }
+    .sub-btn:hover { opacity: 0.85; }
+    .video-title-trigger {
+      font-size: 0.9rem; line-height: 1.45; max-width: 80%;
+      display: -webkit-box;
+      -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      cursor: pointer;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.6);
+    }
+
+    /* ── ボトムシート (概要・コメント) ── */
+    /* 引用元: sennin-tube-plus short.html - openSheet/closeSheet/switchTab */
+    .bottom-sheet {
+      position: fixed; bottom: -110%; left: 0; width: 100%; height: 72%;
+      background: rgba(14,10,6,0.96); backdrop-filter: blur(24px);
+      border-top-left-radius: 24px; border-top-right-radius: 24px;
+      z-index: 100;
+      transition: bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      padding: 18px 16px 20px;
+      display: flex; flex-direction: column;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .bottom-sheet.active { bottom: 0; }
+    .sheet-handle {
+      width: 44px; height: 4px;
+      background: rgba(255,255,255,0.25); border-radius: 2px;
+      margin: 0 auto 16px;
+    }
+    .sheet-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 14px; flex-shrink: 0;
+    }
+    .sheet-tabs { display: flex; gap: 20px; }
+    .tab-btn {
+      font-size: 0.88rem; font-weight: 700;
+      color: rgba(255,255,255,0.45); cursor: pointer;
+      padding-bottom: 6px; border-bottom: 2px solid transparent;
+      transition: all 0.2s; background: none; border: none;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .tab-btn.active {
+      color: #fff; border-bottom: 2px solid var(--kapi-water);
+    }
+    .close-btn {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 0.9rem;
+    }
+    .sheet-content { overflow-y: auto; flex: 1; font-size: 0.88rem; line-height: 1.7; }
+    .sheet-content::-webkit-scrollbar { width: 4px; }
+    .sheet-content::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2); border-radius: 2px;
+    }
+
+    /* コメントカード */
+    .comment-item {
+      display: flex; gap: 12px; padding: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px; margin-bottom: 10px;
+    }
+    .comment-icon {
+      width: 34px; height: 34px; border-radius: 50%;
+      object-fit: cover; flex-shrink: 0; background: #333;
+    }
+    .comment-user { font-size: 0.75rem; font-weight: 700; color: #aaa; margin-bottom: 4px; }
+    .comment-text { font-size: 0.85rem; color: #eee; }
+
+    /* ── 3点メニュー ── */
+    .more-menu {
+      position: fixed; bottom: -100%; left: 0; width: 100%;
+      background: #1C1410; border-top-left-radius: 20px; border-top-right-radius: 20px;
+      z-index: 200; transition: bottom 0.25s ease-out;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    .more-menu.active { bottom: 0; }
+    .menu-item {
+      padding: 16px 20px; display: flex; align-items: center; gap: 16px;
+      cursor: pointer; font-size: 0.9rem;
+      transition: background 0.15s;
+    }
+    .menu-item:active { background: rgba(255,255,255,0.08); }
+    .menu-item i {
+      width: 22px; text-align: center;
+      font-size: 1.05rem; color: var(--kapi-water);
+    }
+    .menu-item.danger i { color: var(--kapi-red); }
+    .menu-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 4px 0; }
+
+    /* オーバーレイ */
+    #sheetOverlay, #menuOverlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none; z-index: 90;
+    }
+    #menuOverlay { z-index: 150; }
+  </style>
+</head>
+<body>
+
+  <!-- 戻るボタン -->
+  <a href="javascript:history.back()" class="back-btn">
+    <i class="fas fa-arrow-left"></i>
+  </a>
+
+  <!-- ロゴ -->
+  <a href="/" class="shorts-logo">🦛 カピバラ<span>チューブ</span></a>
+
+  <div class="shorts-container">
+    <!-- ── 動画プレイヤー ── -->
+    <!-- 引用元: sennin-tube-plus short.html - togglePlay / video イベント監視 -->
+    <div class="video-wrapper" onclick="togglePlay()">
+      <video id="shortVideo" loop autoplay playsinline>
+        <source src="{{ videourls[0] if videourls else '' }}" type="video/mp4">
+      </video>
+      <div class="video-state-overlay">
+        <i id="pauseIcon" class="fas fa-pause"></i>
+        <div id="loadingSpinner"></div>
+      </div>
+      <div id="errorAlert">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>動画の読み込みに失敗しました</div>
+      </div>
+    </div>
+
+    <!-- ── 右サイドボタン ── -->
+    <div class="side-buttons">
+      <div class="action-item">
+        <div class="icon-circle"><i class="fas fa-thumbs-up"></i></div>
+        <span>{{ like_count or 'いいね' }}</span>
+      </div>
+      <div class="action-item">
+        <div class="icon-circle"><i class="fas fa-thumbs-down"></i></div>
+        <span>低評価</span>
+      </div>
+      <div class="action-item" onclick="openSheet('comments')">
+        <div class="icon-circle"><i class="fas fa-comment-dots"></i></div>
+        <span>コメント</span>
+      </div>
+      <div class="action-item" onclick="shareVideo()">
+        <div class="icon-circle"><i class="fas fa-share"></i></div>
+        <span>共有</span>
+      </div>
+      <div class="action-item" onclick="openMoreMenu()">
+        <div class="icon-circle"><i class="fas fa-ellipsis-h"></i></div>
+        <span>その他</span>
+      </div>
+    </div>
+
+    <!-- ── 下部情報 ── -->
+    <div class="bottom-info">
+      <div class="info-content">
+        <div class="author-row">
+          <div class="author-name">@{{ author }}</div>
+          <button class="sub-btn">チャンネル登録</button>
+        </div>
+        <div class="video-title-trigger" onclick="openSheet('description')">
+          {{ video_title }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ボトムシート ── -->
+  <!-- 引用元: sennin-tube-plus short.html - description/commentsタブ切替 -->
+  <div id="sheetOverlay" onclick="closeSheet()"></div>
+  <div id="bottomSheet" class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-tabs">
+        <button id="tab-desc" class="tab-btn active" onclick="switchTab('description')">概要</button>
+        <button id="tab-comm" class="tab-btn"        onclick="switchTab('comments')">コメント</button>
+      </div>
+      <div class="close-btn" onclick="closeSheet()"><i class="fas fa-times"></i></div>
+    </div>
+
+    <!-- 概要 -->
+    <div id="content-description" class="sheet-content">
+      <p style="font-weight:700;margin-bottom:10px;color:var(--kapi-water)">
+        <i class="fas fa-eye"></i> {{ view_count }} 回視聴
+      </p>
+      <div>{{ description | safe }}</div>
+    </div>
+
+    <!-- コメント -->
+    <div id="content-comments" class="sheet-content" style="display:none">
+      {% for c in comments %}
+      <div class="comment-item">
+        {% if c.authorThumbnails %}
+        <img src="{{ c.authorThumbnails[-1].url }}" class="comment-icon" alt="{{ c.author }}">
+        {% else %}
+        <div class="comment-icon" style="background:#333;display:flex;align-items:center;justify-content:center;font-size:1rem;">🦛</div>
+        {% endif %}
+        <div>
+          <div class="comment-user">{{ c.author }} ・ {{ c.publishedText }}</div>
+          <div class="comment-text">{{ c.contentHtml | safe }}</div>
+        </div>
+      </div>
+      {% else %}
+      <p style="text-align:center;color:#666;padding:48px 0 20px">
+        🦛 コメントが見つかりませんでした
+      </p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- ── 3点ドットメニュー ── -->
+  <div id="menuOverlay" onclick="closeMoreMenu()"></div>
+  <div id="moreMenu" class="more-menu">
+    <div class="menu-item" onclick="copyVideoId('{{ videoid }}')">
+      <i class="fas fa-fingerprint"></i> 動画IDをコピー
+    </div>
+    <div class="menu-item" onclick="window.open('{{ videourls[0] if videourls else '' }}', '_blank')">
+      <i class="fas fa-download"></i> 動画を保存 (ブラウザ再生)
+    </div>
+    <div class="menu-item" onclick="window.open('https://www.youtube.com/shorts/{{ videoid }}', '_blank')">
+      <i class="fab fa-youtube"></i> YouTube本家で開く
+    </div>
+    <div class="menu-item" onclick="window.open('/watch?v={{ videoid }}', '_self')">
+      <i class="fas fa-tv"></i> 通常画面で見る
+    </div>
+    <div class="menu-divider"></div>
+    <div class="menu-item danger" onclick="closeMoreMenu()">
+      <i class="fas fa-times"></i> キャンセル
+    </div>
+  </div>
+
+  <script>
+    // ================================================================
+    // 引用元: sennin-tube-plus short.html のロジックをそのまま継承
+    // ================================================================
+    const video        = document.getElementById('shortVideo');
+    const pauseIcon    = document.getElementById('pauseIcon');
+    const spinner      = document.getElementById('loadingSpinner');
+    const errorAlert   = document.getElementById('errorAlert');
+    const bottomSheet  = document.getElementById('bottomSheet');
+    const sheetOverlay = document.getElementById('sheetOverlay');
+    const moreMenu     = document.getElementById('moreMenu');
+    const menuOverlay  = document.getElementById('menuOverlay');
+
+    // ── 再生トグル ────────────────────────────────────────────────────
+    // 引用元: sennin-tube-plus short.html togglePlay()
+    function togglePlay() {
+      if (video.paused) video.play();
+      else              video.pause();
+    }
+
+    // ── ビデオイベント ────────────────────────────────────────────────
+    // 引用元: sennin-tube-plus short.html video イベントハンドラ群
+    video.onpause   = () => { pauseIcon.style.display = 'block'; };
+    video.onplay    = () => { pauseIcon.style.display = 'none'; };
+    video.onwaiting = () => { spinner.style.display = 'block'; };
+    video.onplaying = () => { spinner.style.display = 'none'; };
+    video.onerror   = () => {
+      spinner.style.display = 'none';
+      errorAlert.classList.add('show');
+      setTimeout(() => errorAlert.classList.remove('show'), 4000);
+    };
+
+    // ── ボトムシート ──────────────────────────────────────────────────
+    // 引用元: sennin-tube-plus short.html openSheet / closeSheet / switchTab
+    function openSheet(targetTab) {
+      bottomSheet.classList.add('active');
+      sheetOverlay.style.display = 'block';
+      switchTab(targetTab);
+    }
+    function closeSheet() {
+      bottomSheet.classList.remove('active');
+      sheetOverlay.style.display = 'none';
+    }
+    function switchTab(tab) {
+      const desc = document.getElementById('content-description');
+      const comm = document.getElementById('content-comments');
+      const tdesc = document.getElementById('tab-desc');
+      const tcomm = document.getElementById('tab-comm');
+      if (tab === 'description') {
+        desc.style.display = 'block'; comm.style.display = 'none';
+        tdesc.classList.add('active'); tcomm.classList.remove('active');
+      } else {
+        desc.style.display = 'none'; comm.style.display = 'block';
+        tcomm.classList.add('active'); tdesc.classList.remove('active');
+      }
+    }
+
+    // ── 3点メニュー ───────────────────────────────────────────────────
+    // 引用元: sennin-tube-plus short.html toggleMoreMenu()
+    function openMoreMenu()  {
+      moreMenu.classList.add('active');
+      menuOverlay.style.display = 'block';
+    }
+    function closeMoreMenu() {
+      moreMenu.classList.remove('active');
+      menuOverlay.style.display = 'none';
+    }
+
+    // ── 共有 ──────────────────────────────────────────────────────────
+    // 引用元: sennin-tube-plus short.html shareVideo()
+    async function shareVideo() {
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: '{{ video_title }}', url: location.href });
+        } catch(e) {}
+      } else {
+        navigator.clipboard.writeText(location.href)
+          .then(() => alert('URLをコピーしました'));
+      }
+    }
+
+    // ── IDコピー ─────────────────────────────────────────────────────
+    // 引用元: sennin-tube-plus short.html copyVideoId()
+    function copyVideoId(id) {
+      navigator.clipboard.writeText(id).then(() => {
+        closeMoreMenu();
+        // ミニトースト
+        const t = document.createElement('div');
+        Object.assign(t.style, {
+          position:'fixed', bottom:'80px', left:'50%',
+          transform:'translateX(-50%)',
+          background:'rgba(74,155,142,0.92)', color:'#fff',
+          padding:'10px 22px', borderRadius:'999px',
+          fontSize:'0.85rem', fontWeight:'700', zIndex:'9999',
+          backdropFilter:'blur(12px)', transition:'opacity 0.3s'
+        });
+        t.textContent = '動画IDをコピーしました 🦛';
+        document.body.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2500);
+      });
+    }
+  </script>
+</body>
+</html>

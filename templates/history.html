@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>視聴履歴 - カピバラチューブ 🦛</title>
+  <link rel="stylesheet" href="/statics/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <style>
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .page-header h1 {
+      font-size: 1.4rem; font-weight: 700;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .page-header h1 i { color: var(--kapi-water); }
+
+    /* 履歴カード (リスト) */
+    .history-list { display: flex; flex-direction: column; gap: 12px; }
+    .history-card {
+      display: flex; gap: 14px; align-items: flex-start;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+      text-decoration: none; color: inherit;
+      transition: transform 0.2s, border-color 0.2s;
+      position: relative;
+    }
+    .history-card:hover {
+      transform: translateX(4px);
+      border-color: var(--kapi-warm);
+    }
+    .history-thumb {
+      width: 180px; flex-shrink: 0;
+      aspect-ratio: 16/9; object-fit: cover;
+      background: var(--bg-2);
+    }
+    .history-body {
+      padding: 14px 14px 14px 0;
+      display: flex; flex-direction: column; justify-content: center;
+      min-width: 0;
+    }
+    .history-title {
+      font-size: 0.92rem; font-weight: 700;
+      line-height: 1.4; margin-bottom: 6px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .history-meta { font-size: 0.76rem; color: var(--text-sub); line-height: 1.6; }
+    .history-date { color: var(--kapi-water); font-weight: 600; }
+
+    /* 削除ボタン */
+    .del-btn {
+      position: absolute; top: 10px; right: 12px;
+      background: none; border: none; cursor: pointer;
+      color: var(--text-sub); font-size: 0.85rem;
+      padding: 4px 8px; border-radius: 8px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .del-btn:hover { color: var(--kapi-red); background: rgba(217,79,61,0.1); }
+
+    /* 全削除確認 */
+    .clear-confirm {
+      background: var(--card); border: 1px solid var(--kapi-red);
+      border-radius: 18px; padding: 20px; margin-bottom: 20px;
+      display: none; align-items: center; gap: 14px; flex-wrap: wrap;
+    }
+    .clear-confirm.show { display: flex; }
+    .clear-confirm p { font-size: 0.9rem; flex: 1; }
+
+    @media (max-width: 600px) {
+      .history-thumb { width: 120px; }
+    }
+  </style>
+</head>
+<body>
+  <header id="top-bar">
+    <div class="logo" onclick="location.href='/'">
+      <span class="logo-mark">🦛</span>
+      <span class="logo-text">カピバラ<span>チューブ</span></span>
+    </div>
+    <div class="search-wrap">
+      <form action="/search" method="get">
+        <i class="fas fa-search search-icon"></i>
+        <input id="searchbox" type="search" name="q" placeholder="動画を検索..." autocomplete="off">
+      </form>
+    </div>
+    <div class="header-spacer"></div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <h1><i class="fas fa-clock"></i> 視聴履歴</h1>
+      {% if history %}
+      <button class="btn btn-danger" onclick="askClear()">
+        <i class="fas fa-trash"></i> すべて削除
+      </button>
+      {% endif %}
+    </div>
+
+    <!-- 全削除確認バー -->
+    <div class="clear-confirm" id="clearConfirm">
+      <p>🦛 本当に履歴を全部消しますか？</p>
+      <a href="/history/clear" class="btn btn-danger">
+        <i class="fas fa-trash"></i> 消す
+      </a>
+      <button class="btn btn-secondary" onclick="closeClear()">
+        <i class="fas fa-times"></i> やめる
+      </button>
+    </div>
+
+    {% if history %}
+    <!-- 引用元: sennin-tube-plus main.py /history - Cookie(JSON)に最大50件保存 -->
+    <div class="history-list">
+      {% for item in history | reverse %}
+      <div class="history-card-wrap" id="hw-{{ item.videoId }}">
+        <a href="/watch?v={{ item.videoId }}" class="history-card">
+          <img src="/thumbnail?v={{ item.videoId }}" class="history-thumb" loading="lazy" alt="{{ item.title }}">
+          <div class="history-body">
+            <div class="history-title">{{ item.title }}</div>
+            <div class="history-meta">
+              {% if item.author %}<div>{{ item.author }}</div>{% endif %}
+              <div class="history-date">
+                <i class="fas fa-calendar-alt"></i>
+                {{ item.added_at[:10] if item.added_at else '日付不明' }}
+              </div>
+            </div>
+          </div>
+          <button class="del-btn"
+                  onclick="event.preventDefault(); deleteItem('{{ item.videoId }}')"
+                  title="履歴から削除">
+            <i class="fas fa-times"></i>
+          </button>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+      <span class="emoji">🦛</span>
+      <h2>まだ履歴がありません</h2>
+      <p>動画を見ると自動的に記録されます</p>
+      <a href="/" class="btn btn-primary" style="margin-top:20px">
+        <i class="fas fa-home"></i> トップへ
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <script>
+    $('#searchbox').autocomplete({
+      source: function(req, res) {
+        $.getJSON('/suggest?keyword=' + encodeURIComponent(req.term), d => res(d));
+      },
+      delay: 200, minLength: 1
+    });
+
+    function askClear()  { document.getElementById('clearConfirm').classList.add('show'); }
+    function closeClear(){ document.getElementById('clearConfirm').classList.remove('show'); }
+
+    // 引用元: sennin-tube-plus main.py /history/<video_id>/delete エンドポイント
+    async function deleteItem(videoId) {
+      const el = document.getElementById('hw-' + videoId);
+      if (!el) return;
+      el.style.opacity = '0';
+      el.style.transition = 'opacity 0.3s';
+      await fetch('/history/' + videoId + '/delete', { method: 'POST' });
+      setTimeout(() => el.remove(), 300);
+    }
+  </script>
+</body>
+</html>

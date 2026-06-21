@@ -1,0 +1,316 @@
+/* ========================================
+   カピバラチューブ - 共通スタイル
+   Design: 川べりの夕暮れ × カピバラ温泉
+   ======================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Caprasimo&display=swap');
+
+:root {
+  /* カピバラカラーパレット */
+  --kapi-fur:    #8B6F47;   /* カピバラの毛色 */
+  --kapi-warm:   #C49A6C;   /* 明るい毛色 */
+  --kapi-water:  #4A9B8E;   /* 温泉・川の色 */
+  --kapi-steam:  #E8D5B7;   /* 湯気・砂浜 */
+  --kapi-grass:  #6B8F5E;   /* 草むら */
+  --kapi-accent: #E07B39;   /* 柑橘（ゆず） */
+  --kapi-red:    #D94F3D;   /* エラー色 */
+
+  /* ライトモード */
+  --bg:          #FBF6EF;
+  --bg-2:        #F3EAD8;
+  --card:        #FFFFFF;
+  --card-hover:  #FDF9F3;
+  --text:        #3D2B1F;
+  --text-sub:    #7A6055;
+  --border:      #E0CDB8;
+  --glass:       rgba(251, 246, 239, 0.88);
+  --shadow:      rgba(61, 43, 31, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:          #1E1610;
+    --bg-2:        #2A1E14;
+    --card:        #2E2218;
+    --card-hover:  #362A1E;
+    --text:        #F0E6D6;
+    --text-sub:    #A8917A;
+    --border:      #4A3828;
+    --glass:       rgba(30, 22, 16, 0.92);
+    --shadow:      rgba(0, 0, 0, 0.3);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-top: 68px;
+}
+
+/* ========== ヘッダー ========== */
+#top-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  height: 68px;
+  background: var(--glass);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+  padding: 0 24px;
+  box-shadow: 0 2px 20px var(--shadow);
+}
+
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; color: inherit; flex-shrink: 0;
+  cursor: pointer;
+}
+.logo-mark {
+  font-size: 28px; line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+}
+.logo-text {
+  font-family: 'Caprasimo', cursive;
+  font-size: 1.25rem;
+  color: var(--kapi-fur);
+  letter-spacing: -0.3px;
+  white-space: nowrap;
+}
+.logo-text span { color: var(--kapi-water); }
+
+/* ========== 検索バー ========== */
+.search-wrap {
+  flex: 1; max-width: 600px; position: relative;
+}
+.search-wrap input {
+  width: 100%; padding: 10px 20px 10px 44px;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-family: 'Noto Sans JP', sans-serif;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-wrap input:focus {
+  border-color: var(--kapi-water);
+  box-shadow: 0 0 0 3px rgba(74, 155, 142, 0.15);
+}
+.search-wrap .search-icon {
+  position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+  color: var(--text-sub); pointer-events: none; font-size: 0.9rem;
+}
+
+/* サジェスト */
+.ui-autocomplete {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 32px var(--shadow) !important;
+  padding: 6px !important;
+  font-family: 'Noto Sans JP', sans-serif !important;
+  z-index: 1100 !important;
+  overflow: hidden !important;
+}
+.ui-menu-item-wrapper {
+  padding: 10px 16px !important;
+  border-radius: 10px !important;
+  color: var(--text) !important;
+  font-size: 0.9rem !important;
+  transition: background 0.15s !important;
+}
+.ui-state-active {
+  background: var(--kapi-water) !important;
+  color: #fff !important;
+  border: none !important;
+  margin: 0 !important;
+}
+
+/* ヘッダー右側スペーサー */
+.header-spacer { flex-shrink: 0; width: 40px; }
+
+/* ========== トースト通知 ========== */
+#custom-alert {
+  position: fixed; top: 80px; right: 20px;
+  background: var(--card);
+  border-left: 4px solid var(--kapi-water);
+  padding: 14px 20px;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px var(--shadow);
+  z-index: 3000; display: none;
+  animation: slideFromRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  max-width: 320px;
+}
+#custom-alert.error { border-left-color: var(--kapi-red); }
+.alert-inner { display: flex; align-items: center; gap: 10px; }
+
+@keyframes slideFromRight {
+  from { opacity: 0; transform: translateX(60px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ========== カード共通 ========== */
+.card {
+  background: var(--card);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 12px var(--shadow);
+}
+
+/* ========== 動画グリッドカード ========== */
+.video-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  background: var(--card);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+.video-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px var(--shadow);
+  border-color: var(--kapi-warm);
+}
+.video-thumb-wrap {
+  position: relative;
+  aspect-ratio: 16/9;
+  overflow: hidden;
+  background: var(--bg-2);
+}
+.video-thumb-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s;
+}
+.video-card:hover .video-thumb-wrap img { transform: scale(1.04); }
+.video-duration {
+  position: absolute; bottom: 8px; right: 8px;
+  background: rgba(0,0,0,0.75);
+  color: #fff;
+  font-size: 0.75rem; font-weight: 700;
+  padding: 2px 7px; border-radius: 6px;
+  backdrop-filter: blur(4px);
+}
+.video-card-body { padding: 14px; }
+.video-card-title {
+  font-size: 0.9rem; font-weight: 700;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.video-card-meta {
+  font-size: 0.78rem; color: var(--text-sub);
+  display: flex; flex-direction: column; gap: 2px;
+}
+
+/* ========== グリッドレイアウト ========== */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+/* ========== コンテナ ========== */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+/* ========== セクションタイトル ========== */
+.section-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-sub);
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 16px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+}
+.section-title::before {
+  content: '';
+  display: inline-block;
+  width: 4px; height: 16px;
+  background: var(--kapi-water);
+  border-radius: 2px;
+}
+
+/* ========== ボタン ========== */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  border: none; cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.88rem; font-weight: 700;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--kapi-water); color: #fff;
+}
+.btn-primary:hover { background: var(--kapi-grass); transform: translateY(-1px); }
+.btn-secondary {
+  background: var(--bg-2); color: var(--text);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover { border-color: var(--kapi-warm); background: var(--card-hover); }
+.btn-danger { background: var(--kapi-red); color: #fff; }
+.btn-danger:hover { opacity: 0.85; }
+
+/* ========== フィルターチップ ========== */
+.chip-wrap {
+  display: flex; gap: 8px;
+  overflow-x: auto; padding-bottom: 4px;
+  -ms-overflow-style: none; scrollbar-width: none;
+}
+.chip-wrap::-webkit-scrollbar { display: none; }
+.chip {
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.82rem; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+  transition: all 0.2s; text-decoration: none;
+}
+.chip:hover { border-color: var(--kapi-water); color: var(--kapi-water); }
+.chip.active {
+  background: var(--kapi-water); color: #fff;
+  border-color: var(--kapi-water);
+}
+
+/* ========== ページネーション ========== */
+.pagination {
+  display: flex; justify-content: center; gap: 10px;
+  margin-top: 40px;
+}
+
+/* ========== エラー/空状態 ========== */
+.empty-state {
+  text-align: center; padding: 80px 20px;
+  color: var(--text-sub);
+}
+.empty-state .emoji { font-size: 4rem; margin-bottom: 16px; display: block; }
+.empty-state h2 { font-size: 1.3rem; margin-bottom: 8px; color: var(--text); }
+.empty-state p { font-size: 0.9rem; }
+
+/* ========== レスポンシブ ========== */
+@media (max-width: 768px) {
+  .container { padding: 16px 12px; }
+  .video-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  #top-bar { padding: 0 14px; gap: 10px; }
+  .logo-text { font-size: 1rem; }
+}

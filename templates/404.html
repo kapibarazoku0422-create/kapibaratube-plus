@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 - カピバラチューブ 🦛</title>
+  <link rel="stylesheet" href="/statics/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    .error-page {
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center;
+      padding: 40px 20px;
+    }
+    .error-box {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 28px; padding: 56px 40px;
+      text-align: center; max-width: 480px; width: 100%;
+      box-shadow: 0 16px 48px var(--shadow);
+    }
+    .not-found-kapi {
+      font-size: 5.5rem; display: block; margin-bottom: 16px;
+      animation: drift 4s ease-in-out infinite;
+    }
+    @keyframes drift {
+      0%, 100% { transform: translateX(-10px) rotate(-4deg); }
+      50%       { transform: translateX(10px)  rotate(4deg); }
+    }
+    .num-404 {
+      font-size: 5rem; font-weight: 900; line-height: 1;
+      color: var(--border); letter-spacing: -4px;
+      margin-bottom: 12px;
+    }
+    .error-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 10px; }
+    .error-desc  {
+      font-size: 0.88rem; color: var(--text-sub); line-height: 1.7;
+      margin-bottom: 28px;
+    }
+    .error-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+    .search-mini {
+      margin: 20px 0;
+      position: relative;
+    }
+    .search-mini input {
+      width: 100%; padding: 11px 18px 11px 42px;
+      border: 2px solid var(--border); border-radius: 999px;
+      background: var(--bg-2); color: var(--text);
+      font-size: 0.9rem; font-family: 'Noto Sans JP', sans-serif;
+      outline: none; transition: border-color 0.2s;
+    }
+    .search-mini input:focus { border-color: var(--kapi-water); }
+    .search-mini i {
+      position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+      color: var(--text-sub); pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="error-page">
+    <div class="error-box">
+      <span class="not-found-kapi">🦛</span>
+      <div class="num-404">404</div>
+      <h1 class="error-title">ページが見つかりません</h1>
+      <p class="error-desc">
+        カピバラが迷子になったみたいです 🌿<br>
+        URLが間違っているか、ページが削除されたかもしれません。
+      </p>
+
+      <!-- 検索フォーム -->
+      <form action="/search" method="get" class="search-mini">
+        <i class="fas fa-search"></i>
+        <input type="search" name="q" placeholder="別のキーワードで検索..." autocomplete="off">
+      </form>
+
+      <div class="error-actions">
+        <a href="/" class="btn btn-primary">
+          <i class="fas fa-home"></i> トップへ
+        </a>
+        <a href="javascript:history.back()" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> 戻る
+        </a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

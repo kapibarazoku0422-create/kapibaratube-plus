@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ channel_name }} - カピバラチューブ 🦛</title>
+  <link rel="stylesheet" href="/statics/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <style>
+    /* バナー */
+    .channel-banner {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+      background: linear-gradient(135deg, var(--kapi-water), var(--kapi-grass));
+    }
+
+    /* チャンネルヘッダー */
+    .channel-header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .channel-header-inner {
+      max-width: 1400px; margin: 0 auto;
+      padding: 20px 20px 0;
+    }
+    .channel-profile {
+      display: flex; align-items: flex-end; gap: 20px;
+      margin-top: -48px; margin-bottom: 16px;
+    }
+    .channel-icon {
+      width: 96px; height: 96px;
+      border-radius: 50%; border: 4px solid var(--card);
+      object-fit: cover; flex-shrink: 0;
+      box-shadow: 0 4px 16px var(--shadow);
+    }
+    .channel-meta-group { padding-bottom: 4px; }
+    .channel-name-big { font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+    .channel-sub-count { font-size: 0.88rem; color: var(--text-sub); margin-bottom: 10px; }
+
+    /* 登録ボタン */
+    /* 引用元: sennin-tube-plus channel.html - localStorage でチャンネル購読管理 */
+    #sub-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 22px; border-radius: 999px; border: none;
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 0.88rem; font-weight: 700; cursor: pointer;
+      transition: all 0.25s;
+    }
+    #sub-btn.subbed {
+      background: var(--bg-2); color: var(--text);
+      border: 1.5px solid var(--border);
+    }
+    #sub-btn.not-subbed {
+      background: var(--kapi-water); color: #fff;
+    }
+    #sub-btn:hover { transform: scale(1.04); }
+
+    /* タブ */
+    .channel-tabs {
+      display: flex; gap: 0;
+      border-top: 1px solid var(--border);
+      margin-top: 4px;
+    }
+    .tab-link {
+      padding: 13px 22px;
+      font-size: 0.85rem; font-weight: 700;
+      color: var(--text-sub); text-decoration: none;
+      border-bottom: 3px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .tab-link:hover { color: var(--text); }
+    .tab-link.active { color: var(--kapi-water); border-bottom-color: var(--kapi-water); }
+
+    /* 概要欄 */
+    .channel-about {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 18px; padding: 24px;
+      margin-bottom: 24px; font-size: 0.9rem; line-height: 1.8;
+    }
+    .channel-about h3 {
+      font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--text-sub); margin-bottom: 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .channel-about h3::before {
+      content: ''; width: 3px; height: 14px;
+      background: var(--kapi-water); border-radius: 2px; display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <!-- ヘッダー -->
+  <header id="top-bar">
+    <div class="logo" onclick="location.href='/'">
+      <span class="logo-mark">🦛</span>
+      <span class="logo-text">カピバラ<span>チューブ</span></span>
+    </div>
+    <div class="search-wrap">
+      <form action="/search" method="get">
+        <i class="fas fa-search search-icon"></i>
+        <input id="searchbox" type="search" name="q"
+               placeholder="動画を検索..." autocomplete="off">
+      </form>
+    </div>
+    <div class="header-spacer"></div>
+  </header>
+
+  <!-- チャンネルバナー -->
+  {% if channel_banner %}
+  <img src="{{ channel_banner }}" class="channel-banner" alt="">
+  {% else %}
+  <div class="channel-banner"></div>
+  {% endif %}
+
+  <!-- チャンネルヘッダー -->
+  <div class="channel-header">
+    <div class="channel-header-inner">
+      <div class="channel-profile">
+        <img src="{{ channel_icon }}" class="channel-icon" alt="{{ channel_name }}">
+        <div class="channel-meta-group">
+          <div class="channel-name-big">{{ channel_name }}</div>
+          <div class="channel-sub-count">
+            <i class="fas fa-users" style="color:var(--kapi-water)"></i>
+            {{ subscriber_count }} 人が登録
+          </div>
+          <!-- 引用元: sennin-tube-plus channel.html - subscriptions localStorage管理 -->
+          <button id="sub-btn" class="not-subbed"
+                  data-id="{{ channel_id }}"
+                  data-name="{{ channel_name }}"
+                  data-icon="{{ channel_icon }}"
+                  onclick="toggleSub(this)">
+            <i class="fas fa-heart"></i>
+            <span>登録する</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- タブ -->
+      <nav class="channel-tabs">
+        <a href="/channel/{{ channel_id }}" class="tab-link active">
+          <i class="fas fa-play"></i> 動画
+        </a>
+        <a href="/channel/{{ channel_id }}/playlists" class="tab-link">
+          <i class="fas fa-list"></i> プレイリスト
+        </a>
+        <a href="/channel/{{ channel_id }}/about" class="tab-link">
+          <i class="fas fa-info-circle"></i> 概要
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- チャンネル概要 (aboutページ相当) -->
+    {% if channel_description %}
+    <div class="channel-about">
+      <h3>チャンネルについて</h3>
+      {{ channel_description }}
+    </div>
+    {% endif %}
+
+    <!-- 動画一覧 -->
+    <div class="section-title">動画</div>
+    {% if videos %}
+    <div class="video-grid">
+      {% for v in videos %}
+      <a href="/watch?v={{ v.videoId }}" class="video-card">
+        <div class="video-thumb-wrap">
+          <img src="/thumbnail?v={{ v.videoId }}" loading="lazy" alt="{{ v.title }}">
+          <span class="video-duration">{{ v.lengthSeconds | duration }}</span>
+        </div>
+        <div class="video-card-body">
+          <div class="video-card-title">{{ v.title }}</div>
+          <div class="video-card-meta">
+            <span><i class="fas fa-eye" style="color:var(--kapi-water)"></i> {{ v.viewCount | view_count }} 回視聴</span>
+            <span>{{ v.publishedText }}</span>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- ページネーション -->
+    {% if continuation %}
+    <div class="pagination">
+      <a href="/channel/{{ channel_id }}?continuation={{ continuation }}"
+         class="btn btn-primary">
+        もっと見る <i class="fas fa-chevron-down"></i>
+      </a>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+      <span class="emoji">🦛</span>
+      <h2>動画が見つかりませんでした</h2>
+      <p>後でもう一度試してみてください</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <script>
+    // ── 検索サジェスト ───────────────────────────────────────────────
+    $('#searchbox').autocomplete({
+      source: function(req, res) {
+        $.getJSON('/suggest?keyword=' + encodeURIComponent(req.term), d => res(d));
+      },
+      delay: 200, minLength: 1
+    });
+
+    // ── チャンネル登録トグル ─────────────────────────────────────────
+    // 引用元: sennin-tube-plus channel.html - localStorageでsubscriptions配列管理
+    function toggleSub(btn) {
+      const id   = btn.dataset.id;
+      const name = btn.dataset.name;
+      const icon = btn.dataset.icon;
+      let subs = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+      const idx = subs.findIndex(s => s.id === id);
+      if (idx === -1) {
+        subs.push({ id, name, icon });
+        localStorage.setItem('subscriptions', JSON.stringify(subs));
+        btn.classList.replace('not-subbed', 'subbed');
+        btn.querySelector('i').className = 'fas fa-heart-broken';
+        btn.querySelector('span').textContent = '登録済み';
+        showToast('チャンネルを登録しました 🦛');
+      } else {
+        subs.splice(idx, 1);
+        localStorage.setItem('subscriptions', JSON.stringify(subs));
+        btn.classList.replace('subbed', 'not-subbed');
+        btn.querySelector('i').className = 'fas fa-heart';
+        btn.querySelector('span').textContent = '登録する';
+        showToast('チャンネルの登録を解除しました');
+      }
+    }
+
+    // 初期状態反映
+    (function() {
+      const btn  = document.getElementById('sub-btn');
+      const id   = btn.dataset.id;
+      const subs = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+      if (subs.find(s => s.id === id)) {
+        btn.classList.replace('not-subbed', 'subbed');
+        btn.querySelector('i').className = 'fas fa-heart-broken';
+        btn.querySelector('span').textContent = '登録済み';
+      }
+    })();
+
+    function showToast(msg) {
+      const el = document.createElement('div');
+      Object.assign(el.style, {
+        position: 'fixed', top: '80px', right: '20px', zIndex: '3000',
+        background: 'var(--card)', border: '1px solid var(--border)',
+        borderLeft: '4px solid var(--kapi-water)',
+        padding: '12px 18px', borderRadius: '14px',
+        boxShadow: '0 8px 24px var(--shadow)',
+        fontSize: '0.88rem', animation: 'slideFromRight 0.4s ease',
+        maxWidth: '260px'
+      });
+      el.textContent = msg;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3000);
+    }
+  </script>
+</body>
+</html>

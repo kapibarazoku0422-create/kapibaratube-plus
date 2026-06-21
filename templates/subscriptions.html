@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登録チャンネル - カピバラチューブ 🦛</title>
+  <link rel="stylesheet" href="/statics/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <style>
+    .page-header {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 28px;
+    }
+    .page-header h1 { font-size: 1.4rem; font-weight: 700; }
+    .page-header i { color: var(--kapi-water); font-size: 1.2rem; }
+
+    /* チャンネルグリッド */
+    .sub-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .sub-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 18px; padding: 24px 16px;
+      text-align: center; text-decoration: none; color: inherit;
+      position: relative;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    }
+    .sub-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--kapi-water);
+      box-shadow: 0 10px 28px var(--shadow);
+    }
+    .sub-icon {
+      width: 72px; height: 72px;
+      border-radius: 50%; object-fit: cover;
+      border: 3px solid var(--border);
+      margin: 0 auto 12px; display: block;
+    }
+    .sub-name {
+      font-size: 0.9rem; font-weight: 700;
+      line-height: 1.3; margin-bottom: 8px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .sub-unsub-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 999px;
+      border: 1.5px solid var(--border); background: var(--bg-2);
+      color: var(--text-sub); font-size: 0.75rem; font-weight: 700;
+      cursor: pointer; font-family: 'Noto Sans JP', sans-serif;
+      transition: all 0.2s;
+    }
+    .sub-unsub-btn:hover { border-color: var(--kapi-red); color: var(--kapi-red); background: rgba(217,79,61,0.08); }
+
+    /* 登録数バッジ */
+    .sub-count-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--bg-2); border: 1px solid var(--border);
+      border-radius: 999px; padding: 5px 14px;
+      font-size: 0.82rem; color: var(--text-sub);
+      margin-bottom: 20px;
+    }
+    .sub-count-badge strong { color: var(--kapi-water); }
+  </style>
+</head>
+<body>
+  <header id="top-bar">
+    <div class="logo" onclick="location.href='/'">
+      <span class="logo-mark">🦛</span>
+      <span class="logo-text">カピバラ<span>チューブ</span></span>
+    </div>
+    <div class="search-wrap">
+      <form action="/search" method="get">
+        <i class="fas fa-search search-icon"></i>
+        <input id="searchbox" type="search" name="q" placeholder="動画を検索..." autocomplete="off">
+      </form>
+    </div>
+    <div class="header-spacer"></div>
+  </header>
+
+  <div class="container">
+    <div class="page-header">
+      <i class="fas fa-heart"></i>
+      <h1>登録チャンネル</h1>
+    </div>
+
+    <!-- 登録数 -->
+    <div class="sub-count-badge">
+      <i class="fas fa-users"></i>
+      <strong id="subCountNum">0</strong> チャンネルを登録中
+    </div>
+
+    <!-- 引用元: sennin-tube-plus subscriptions.html - localStorage['subscriptions']から一覧生成 -->
+    <div class="sub-grid" id="subGrid">
+      <!-- JS で動的生成 -->
+    </div>
+
+    <div class="empty-state" id="emptyState" style="display:none">
+      <span class="emoji">🦛</span>
+      <h2>登録チャンネルがありません</h2>
+      <p>気になるチャンネルでハートをタップしよう</p>
+      <a href="/" class="btn btn-primary" style="margin-top:20px">
+        <i class="fas fa-search"></i> チャンネルを探す
+      </a>
+    </div>
+  </div>
+
+  <script>
+    // ── 検索サジェスト ───────────────────────────────────────────────
+    $('#searchbox').autocomplete({
+      source: function(req, res) {
+        $.getJSON('/suggest?keyword=' + encodeURIComponent(req.term), d => res(d));
+      },
+      delay: 200, minLength: 1
+    });
+
+    // ── 購読一覧 描画 ────────────────────────────────────────────────
+    // 引用元: sennin-tube-plus subscriptions.html - localStorage 'subscriptions' 管理
+    function renderSubs() {
+      const subs   = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+      const grid   = document.getElementById('subGrid');
+      const empty  = document.getElementById('emptyState');
+      const badge  = document.getElementById('subCountNum');
+      badge.textContent = subs.length;
+      grid.innerHTML = '';
+      if (!subs.length) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      subs.forEach(ch => {
+        const card = document.createElement('a');
+        card.href  = `/channel/${ch.id}`;
+        card.className = 'sub-card';
+        card.innerHTML = `
+          <img src="${ch.icon || '/statics/img/kapi-default.png'}" class="sub-icon"
+               onerror="this.src='/statics/img/kapi-default.png'" alt="${ch.name}">
+          <div class="sub-name">${ch.name}</div>
+          <button class="sub-unsub-btn" data-id="${ch.id}"
+                  onclick="event.preventDefault(); unsubscribe('${ch.id}')">
+            <i class="fas fa-heart-broken"></i> 登録解除
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function unsubscribe(id) {
+      let subs = JSON.parse(localStorage.getItem('subscriptions') || '[]');
+      subs = subs.filter(s => s.id !== id);
+      localStorage.setItem('subscriptions', JSON.stringify(subs));
+      renderSubs();
+    }
+
+    renderSubs();
+  </script>
+</body>
+</html>

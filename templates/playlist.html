@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ playlist_title }} - カピバラチューブ 🦛</title>
+  <link rel="stylesheet" href="/statics/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <style>
+    .playlist-layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .playlist-layout { grid-template-columns: 1fr; }
+    }
+
+    /* サイドバー：プレイリスト情報 */
+    .pl-sidebar {
+      position: sticky; top: 88px;
+    }
+    .pl-info-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; overflow: hidden;
+    }
+    .pl-cover {
+      width: 100%; aspect-ratio: 16/9;
+      object-fit: cover; display: block; background: var(--bg-2);
+    }
+    .pl-info-body { padding: 20px; }
+    .pl-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; line-height: 1.4; }
+    .pl-meta  { font-size: 0.8rem; color: var(--text-sub); line-height: 1.8; margin-bottom: 16px; }
+    .pl-meta span { display: flex; align-items: center; gap: 5px; }
+    .pl-meta i { color: var(--kapi-water); }
+    .pl-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* 動画リスト */
+    .pl-video-list { display: flex; flex-direction: column; gap: 8px; }
+    .pl-video-item {
+      display: flex; gap: 12px; align-items: center;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+      text-decoration: none; color: inherit;
+      transition: transform 0.2s, border-color 0.2s;
+      padding-right: 12px;
+    }
+    .pl-video-item:hover {
+      transform: translateX(4px);
+      border-color: var(--kapi-water);
+    }
+    .pl-item-num {
+      width: 44px; flex-shrink: 0; text-align: center;
+      font-size: 0.8rem; color: var(--text-sub); font-weight: 700;
+    }
+    .pl-item-thumb {
+      width: 130px; aspect-ratio: 16/9;
+      object-fit: cover; flex-shrink: 0; background: var(--bg-2);
+    }
+    .pl-item-body { flex: 1; min-width: 0; padding: 10px 0; }
+    .pl-item-title {
+      font-size: 0.88rem; font-weight: 700;
+      line-height: 1.35; margin-bottom: 4px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .pl-item-meta { font-size: 0.74rem; color: var(--text-sub); }
+
+    @media (max-width: 600px) {
+      .pl-item-thumb { width: 100px; }
+      .pl-item-num   { width: 28px; font-size: 0.7rem; }
+    }
+  </style>
+</head>
+<body>
+  <header id="top-bar">
+    <div class="logo" onclick="location.href='/'">
+      <span class="logo-mark">🦛</span>
+      <span class="logo-text">カピバラ<span>チューブ</span></span>
+    </div>
+    <div class="search-wrap">
+      <form action="/search" method="get">
+        <i class="fas fa-search search-icon"></i>
+        <input id="searchbox" type="search" name="q" placeholder="動画を検索..." autocomplete="off">
+      </form>
+    </div>
+    <div class="header-spacer"></div>
+  </header>
+
+  <div class="container">
+    <div class="playlist-layout">
+      <!-- プレイリスト情報 -->
+      <div class="pl-sidebar">
+        <div class="pl-info-card">
+          {% if playlist_thumbnail %}
+          <img src="{{ playlist_thumbnail }}" class="pl-cover" alt="{{ playlist_title }}">
+          {% endif %}
+          <div class="pl-info-body">
+            <div class="pl-title">{{ playlist_title }}</div>
+            <div class="pl-meta">
+              <span><i class="fas fa-user"></i> {{ playlist_author }}</span>
+              <span><i class="fas fa-film"></i> {{ videos | length }} 本の動画</span>
+              {% if playlist_description %}
+              <span style="margin-top:4px;color:var(--text);line-height:1.6">
+                {{ playlist_description[:120] }}{% if playlist_description|length > 120 %}...{% endif %}
+              </span>
+              {% endif %}
+            </div>
+            <div class="pl-actions">
+              {% if videos %}
+              <a href="/watch?v={{ videos[0].videoId }}&list={{ playlist_id }}"
+                 class="btn btn-primary">
+                <i class="fas fa-play"></i> 最初から再生
+              </a>
+              {% endif %}
+              <a href="https://www.youtube.com/playlist?list={{ playlist_id }}"
+                 target="_blank" class="btn btn-secondary">
+                <i class="fab fa-youtube"></i> 本家へ
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 動画リスト -->
+      <!-- 引用元: sennin-tube-plus main.py /playlist - Invidious /api/v1/playlists エンドポイント -->
+      <div>
+        <div class="section-title">動画一覧</div>
+        {% if videos %}
+        <div class="pl-video-list">
+          {% for v in videos %}
+          <a href="/watch?v={{ v.videoId }}&list={{ playlist_id }}" class="pl-video-item">
+            <div class="pl-item-num">{{ loop.index }}</div>
+            <img src="/thumbnail?v={{ v.videoId }}" class="pl-item-thumb" loading="lazy" alt="{{ v.title }}">
+            <div class="pl-item-body">
+              <div class="pl-item-title">{{ v.title }}</div>
+              <div class="pl-item-meta">{{ v.author }}</div>
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <span class="emoji">🦛</span>
+          <h2>動画が見つかりませんでした</h2>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    $('#searchbox').autocomplete({
+      source: function(req, res) {
+        $.getJSON('/suggest?keyword=' + encodeURIComponent(req.term), d => res(d));
+      },
+      delay: 200, minLength: 1
+    });
+  </script>
+</body>
+</html>

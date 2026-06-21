@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>カピバラチューブ 🦛</title>
+  <link rel="stylesheet" href="/statics/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <style>
+    body { padding-top: 0; }
+
+    /* ヒーロー */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% 110%, rgba(74,155,142,0.15) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 80% 20%, rgba(139,111,71,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* 浮かぶカピバラたち */
+    .floating-kapi {
+      position: absolute;
+      font-size: 2.5rem;
+      animation: floatKapi 6s ease-in-out infinite;
+      pointer-events: none; user-select: none;
+      opacity: 0.35;
+    }
+    .fk-1 { top: 15%; left:  8%; animation-delay: 0s;    font-size: 3rem; }
+    .fk-2 { top: 25%; right: 10%; animation-delay: 1.5s; font-size: 2rem; }
+    .fk-3 { bottom: 20%; left: 15%; animation-delay: 3s;  font-size: 2.5rem; }
+    .fk-4 { bottom: 30%; right: 8%;  animation-delay: 0.8s; font-size: 1.8rem; }
+    @keyframes floatKapi {
+      0%, 100% { transform: translateY(0) rotate(-5deg); }
+      50%       { transform: translateY(-18px) rotate(5deg); }
+    }
+
+    /* メインロゴ */
+    .hero-logo {
+      position: relative; z-index: 1;
+      margin-bottom: 12px;
+    }
+    .hero-kapi { font-size: 6rem; line-height: 1; display: block; margin-bottom: 8px;
+      animation: bobbing 3s ease-in-out infinite;
+    }
+    @keyframes bobbing {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+    .hero-title {
+      font-family: 'Caprasimo', cursive;
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      color: var(--kapi-fur);
+      letter-spacing: -1px;
+      line-height: 1;
+    }
+    .hero-title span { color: var(--kapi-water); }
+
+    .hero-sub {
+      font-size: 0.92rem; color: var(--text-sub);
+      margin-top: 8px; margin-bottom: 40px;
+      position: relative; z-index: 1;
+    }
+
+    /* 検索ボックス（ヒーロー専用） */
+    .hero-search {
+      width: 100%; max-width: 560px;
+      position: relative; z-index: 1;
+      margin-bottom: 28px;
+    }
+    .hero-search input {
+      width: 100%; padding: 16px 24px 16px 52px;
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--text);
+      font-size: 1rem;
+      font-family: 'Noto Sans JP', sans-serif;
+      outline: none;
+      box-shadow: 0 8px 32px var(--shadow);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .hero-search input:focus {
+      border-color: var(--kapi-water);
+      box-shadow: 0 8px 32px rgba(74,155,142,0.2);
+    }
+    .hero-search .search-icon {
+      position: absolute; left: 20px; top: 50%; transform: translateY(-50%);
+      color: var(--text-sub); pointer-events: none; font-size: 1rem;
+    }
+
+    /* クイックリンク */
+    .quick-links {
+      display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+      position: relative; z-index: 1;
+    }
+
+    /* お知らせバナー */
+    .notice-banner {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--kapi-water);
+      padding: 12px 20px;
+      border-radius: 14px;
+      box-shadow: 0 8px 24px var(--shadow);
+      font-size: 0.88rem;
+      display: flex; align-items: center; gap: 12px;
+      z-index: 500;
+      max-width: 400px; width: 90%;
+      animation: slideUp 0.5s ease-out;
+      cursor: pointer;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    .notice-banner .notice-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .notice-text { flex: 1; color: var(--text-sub); }
+    .notice-close { color: var(--text-sub); cursor: pointer; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+
+<!-- 浮かぶカピバラ装飾 -->
+<div class="floating-kapi fk-1">🦛</div>
+<div class="floating-kapi fk-2">🌿</div>
+<div class="floating-kapi fk-3">💧</div>
+<div class="floating-kapi fk-4">🍊</div>
+
+<main class="hero">
+  <div class="hero-logo">
+    <span class="hero-kapi">🦛</span>
+    <h1 class="hero-title">カピバラ<span>チューブ</span></h1>
+  </div>
+  <p class="hero-sub">YouTubeをのんびり楽しもう</p>
+
+  <!-- 検索フォーム（ロジック引用: sennin-tube-plus /search エンドポイント） -->
+  <div class="hero-search">
+    <form action="/search" method="get">
+      <i class="fas fa-search search-icon"></i>
+      <input id="searchbox" name="q" type="search"
+             placeholder="動画を検索..." autocomplete="off" spellcheck="false" autofocus>
+    </form>
+  </div>
+
+  <!-- クイックリンク -->
+  <div class="quick-links">
+    <a href="/history"       class="chip"><i class="fas fa-clock"></i> 履歴</a>
+    <a href="/subscriptions" class="chip"><i class="fas fa-heart"></i> チャンネル</a>
+    <a href="/games"         class="chip"><i class="fas fa-gamepad"></i> ゲーム</a>
+    <a href="/status"        class="chip"><i class="fas fa-signal"></i> 稼働状況</a>
+    <a href="/bbs"           class="chip"><i class="fas fa-comments"></i> 掲示板</a>
+  </div>
+</main>
+
+<!-- お知らせバナー (ロジック引用: home.htmlの通知システム) -->
+<div class="notice-banner" id="noticeBanner">
+  <span class="notice-icon">🦛</span>
+  <span class="notice-text" id="noticeText">カピバラチューブへようこそ</span>
+  <i class="fas fa-times notice-close" id="noticeClose"></i>
+</div>
+
+<script>
+  // ─── 検索サジェスト ───────────────────────────────────────────────────────────
+  // 引用元: sennin-tube-plus main.py /suggest エンドポイント
+  // Invidiousの /api/v1/search/suggestions を経由してサジェストを取得
+  $('#searchbox').autocomplete({
+    source: function(req, res) {
+      $.getJSON('/suggest?keyword=' + encodeURIComponent(req.term), function(data) {
+        res(data);
+      });
+    },
+    delay: 200, minLength: 1
+  });
+
+  // ─── お知らせローテーション ────────────────────────────────────────────────────
+  // 引用元: sennin-tube-plus home.html - setIntervalで通知文を自動切替
+  const messages = [
+    "エラーの時は少し待ってみよう 🌿",
+    "再生できないときはリロードしてね 🔄",
+    "カピバラは温泉が大好き 🛁",
+    "ゆっくりのんびり動画を楽しもう 🦛"
+  ];
+  let mi = 0;
+  const noticeText = document.getElementById('noticeText');
+  setInterval(() => {
+    noticeText.style.opacity = 0;
+    setTimeout(() => {
+      mi = (mi + 1) % messages.length;
+      noticeText.textContent = messages[mi];
+      noticeText.style.opacity = 1;
+    }, 400);
+  }, 6000);
+  noticeText.style.transition = 'opacity 0.4s';
+
+  document.getElementById('noticeClose').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('noticeBanner').style.display = 'none';
+  });
+</script>
+</body>
+</html>
